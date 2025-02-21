@@ -26,13 +26,14 @@ public class RestApiTest {
         assertEquals(200, userResponse.statusCode(), "Unexpected status code");
 
         testPet = new Pet(10, "Buddy", "available");
+        String orderJson = "{ \"id\": 1, \"petId\": 10, \"quantity\": 1, \"shipDate\": \"2024-02-14T00:00:00.000+0000\", \"status\": \"placed\", \"complete\": true }";
         Response petResponse = given()
                 .contentType("application/json")
-                .body(testPet)
-                .post("https://petstore.swagger.io/v2/pet")
+                .body(orderJson)
+                .post("https://petstore.swagger.io/v2/store/order")
                 .andReturn();
-        assertNotNull(petResponse, "Pet creation response is null");
-        assertEquals(200, petResponse.statusCode(), "Pet not created");
+        assertNotNull(petResponse, "Order creation response is null");
+        assertEquals(200, petResponse.statusCode(), "Order not created");
     }
     @Test
     void testAddUser() {
@@ -74,6 +75,12 @@ public class RestApiTest {
         Response response = userController.deleteStoreOrder(1);
         assertNotNull(response, "Response is null");
         assertEquals(200, response.statusCode(), "Unexpected status code");
-        response.then().assertThat().statusCode(200);
+        response.then()
+                .assertThat()
+                .body("message", equalTo("1"));
+        Response checkResponse = given()
+                .get("https://petstore.swagger.io/v2/store/order/1")
+                .andReturn();
+        assertEquals(404, checkResponse.statusCode(), "Order was not deleted");
     }
 }
